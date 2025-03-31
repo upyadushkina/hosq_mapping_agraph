@@ -67,12 +67,6 @@ st.markdown(f"""
     header {{
         background-color: {HEADER_MENU_COLOR} !important;
     }}
-    iframe[src*="agraph"] {{
-        background-color: {GRAPH_BG_COLOR} !important;
-    }}
-    .element-container iframe {{
-        background-color: {GRAPH_BG_COLOR} !important;
-    }}
     </style>
 """, unsafe_allow_html=True)
 
