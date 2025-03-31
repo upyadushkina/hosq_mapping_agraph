@@ -74,6 +74,12 @@ if country_filter:
 if city_filter:
     filtered_df = filtered_df[filtered_df["city"].isin(city_filter)]
 
+def get_google_drive_image_url(url):
+    if "drive.google.com" in url and "/d/" in url:
+        file_id = url.split("/d/")[1].split("/")[0]
+        return f"https://drive.google.com/uc?id={file_id}"
+    return url
+
 # === Построение узлов и рёбер ===
 nodes = []
 edges = []
@@ -87,7 +93,12 @@ for _, row in filtered_df.iterrows():
     roles = [r.strip() for r in row["role"].split(",") if r.strip()]
     telegram = row["telegram nickname"].strip()
     email = row["email"].strip()
-    photo = row["photo url"].strip() or DEFAULT_PHOTO
+    photo_drive = row.get("photo google drive", "").strip()
+    photo_direct = row.get("photo url", "").strip()
+
+    photo = get_google_drive_image_url(photo_drive) if photo_drive else photo_direct
+    if not photo or not photo.startswith("http"):
+        photo = DEFAULT_PHOTO
 
     label = name
     tooltip = f"{name}\nTelegram: {telegram}\nEmail: {email}"
@@ -142,8 +153,14 @@ if clicked_label:
     selected_artist = df[df["name"].str.strip() == clicked_label]
     if not selected_artist.empty:
         artist = selected_artist.iloc[0]
+        photo_drive = artist.get("photo google drive", "").strip()
+        photo_direct = artist.get("photo url", "").strip()
+        photo = get_google_drive_image_url(photo_drive) if photo_drive else photo_direct
+        if not photo or not photo.startswith("http"):
+            photo = DEFAULT_PHOTO
+
         with st.expander("🎨 Artist Info", expanded=True):
-            st.image(artist['photo url'] or DEFAULT_PHOTO, width=200)
+            st.image(photo, width=200)
             st.markdown(f"**Name:** {artist['name']}")
             if artist['telegram nickname']:
                 st.markdown(f"**Telegram:** {artist['telegram nickname']}")
