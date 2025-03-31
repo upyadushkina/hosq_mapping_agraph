@@ -35,6 +35,10 @@ st.markdown(f"""
     .node-card * {{
         color: {PAGE_TEXT_COLOR} !important;
     }}
+    section[data-testid="stSidebar"] > div:first-child {{
+        background-color: {SIDEBAR_BG_COLOR};
+        color: {SIDEBAR_LABEL_COLOR};
+    }}
     .stMultiSelect, .stSelectbox, .stTextInput {{
         background-color: {SIDEBAR_BG_COLOR} !important;
         color: {SIDEBAR_LABEL_COLOR} !important;
@@ -87,17 +91,17 @@ for _, row in filtered_df.iterrows():
 
     label = name
     tooltip = f"{name}\nTelegram: {telegram}\nEmail: {email}"
-    nodes.append(Node(id=name, label=label, size=400, color=NODE_NAME_COLOR, title=tooltip))
+    nodes.append(Node(id=name, label=label, size=25, color=NODE_NAME_COLOR, title=tooltip))
 
     if city:
         if city not in added:
-            nodes.append(Node(id=city, label=city, size=200, color=NODE_CITY_COLOR))
+            nodes.append(Node(id=city, label=city, size=15, color=NODE_CITY_COLOR))
             added.add(city)
         edges.append(Edge(source=name, target=city))
 
     if country:
         if country not in added:
-            nodes.append(Node(id=country, label=country, size=200, color=NODE_CITY_COLOR))
+            nodes.append(Node(id=country, label=country, size=15, color=NODE_CITY_COLOR))
             added.add(country)
         edges.append(Edge(source=name, target=country))
         if city:
@@ -105,13 +109,13 @@ for _, row in filtered_df.iterrows():
 
     for field in fields:
         if field not in added:
-            nodes.append(Node(id=field, label=field, size=200, color=NODE_FIELD_COLOR))
+            nodes.append(Node(id=field, label=field, size=15, color=NODE_FIELD_COLOR))
             added.add(field)
         edges.append(Edge(source=name, target=field))
 
     for role in roles:
         if role not in added:
-            nodes.append(Node(id=role, label=role, size=200, color=NODE_ROLE_COLOR))
+            nodes.append(Node(id=role, label=role, size=15, color=NODE_ROLE_COLOR))
             added.add(role)
         edges.append(Edge(source=name, target=role))
 
@@ -130,16 +134,22 @@ config = Config(
 # === Отображение графа ===
 st.subheader("HOSQ Artist Graph")
 return_value = agraph(nodes=nodes, edges=edges, config=config)
+st.write("Selected node:", return_value)
 
 # === Инфо о выбранном художнике в popup сбоку ===
-if return_value and return_value.get("label") in df["name"].values:
-    selected_artist = df[df["name"] == return_value.get("label")].iloc[0]
-    with st.expander("🎨 Artist Info", expanded=True):
-        st.image(selected_artist['photo url'] or DEFAULT_PHOTO, width=200)
-        st.markdown(f"**Name:** {selected_artist['name']}")
-        if selected_artist['telegram nickname']:
-            st.markdown(f"**Telegram:** {selected_artist['telegram nickname']}")
-        if selected_artist['email']:
-            st.markdown(f"**Email:** {selected_artist['email']}")
+clicked_label = return_value.get("label") if return_value else None
+if clicked_label:
+    selected_artist = df[df["name"].str.strip() == clicked_label.strip()]
+    if not selected_artist.empty:
+        artist = selected_artist.iloc[0]
+        with st.expander("🎨 Artist Info", expanded=True):
+            st.image(artist['photo url'] or DEFAULT_PHOTO, width=200)
+            st.markdown(f"**Name:** {artist['name']}")
+            if artist['telegram nickname']:
+                st.markdown(f"**Telegram:** {artist['telegram nickname']}")
+            if artist['email']:
+                st.markdown(f"**Email:** {artist['email']}")
+    else:
+        st.info("Selected node does not match any artist")
 else:
     st.info("Click a node to view artist info")
