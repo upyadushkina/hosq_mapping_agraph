@@ -36,33 +36,42 @@ st.markdown(f"""
         background-color: {PAGE_BG_COLOR};
         color: {PAGE_TEXT_COLOR};
     }}
-    .node-card * {{
-        color: {PAGE_TEXT_COLOR} !important;
-    }}
-    section[data-testid="stSidebar"] > div:first-child {{
-        background-color: {SIDEBAR_BG_COLOR};
-        color: {SIDEBAR_LABEL_COLOR};
-    }}
-    .stMultiSelect, .stSelectbox, .stTextInput {{
+    .stSidebar {{
         background-color: {SIDEBAR_BG_COLOR} !important;
+    }}
+    .stSidebar label, .stSidebar .css-1n76uvr {{
         color: {SIDEBAR_LABEL_COLOR} !important;
     }}
-    .stButton>button {{
-        background-color: {BUTTON_BG_COLOR};
-        color: {BUTTON_TEXT_COLOR};
+    .stSidebar h1, .stSidebar h2, .stSidebar h3 {{
+        color: {SIDEBAR_HEADER_COLOR} !important;
     }}
-    .st-bz, .st-c0 {{
-        color: {SIDEBAR_TAG_TEXT_COLOR} !important;
+    .stSidebar .css-ewr7em svg {{
+        stroke: {SIDEBAR_TOGGLE_ARROW_COLOR} !important;
+    }}
+    .stMultiSelect>div>div {{
+        background-color: {PAGE_BG_COLOR} !important;
+        color: {PAGE_TEXT_COLOR} !important;
+    }}
+    .stMultiSelect [data-baseweb="tag"] {{
         background-color: {SIDEBAR_TAG_BG_COLOR} !important;
+        color: {SIDEBAR_TAG_TEXT_COLOR} !important;
     }}
-    .stApp > header {{
-        background-color: {HEADER_MENU_COLOR};
+    .stButton > button {{
+        background-color: {BUTTON_BG_COLOR} !important;
+        color: {BUTTON_CLEAN_TEXT_COLOR} !important;
+        border: none;
     }}
-    .st-c7, .st-cn {{
-        color: {SIDEBAR_TOGGLE_ARROW_COLOR} !important;
+    .artist-card * {{
+        color: {PAGE_TEXT_COLOR} !important;
     }}
-    .vis-network {{
-        background-color: {GRAPH_BG_COLOR} !important;
+    header {{
+        background-color: {HEADER_MENU_COLOR} !important;
+    }}
+    iframe {{
+        border: none !important;
+        box-shadow: none !important;
+        background-color: transparent !important;
+        margin-top: 0px;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -187,7 +196,7 @@ with st.sidebar:
                 photo = DEFAULT_PHOTO
 
             st.markdown("---")
-            st.markdown(f"<div class='node-card'><h4>🎨 {artist['name']}</h4>", unsafe_allow_html=True)
+            st.markdown(f"<div class='artist-card'><h4>🎨 {artist['name']}</h4>", unsafe_allow_html=True)
             st.image(photo, width=200)
             if artist['telegram nickname']:
                 st.markdown(f"**Telegram:** {artist['telegram nickname']}")
