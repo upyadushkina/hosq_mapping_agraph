@@ -99,18 +99,22 @@ def is_valid_image(url):
     except:
         return False
 
+# === Распарсить поля для фильтров ===
+df_fields = sorted(set(field.strip() for sublist in df["professional field"].str.split(",") for field in sublist if field.strip()))
+df_roles = sorted(set(role.strip() for sublist in df["role"].str.split(",") for role in sublist if role.strip()))
+
 # === Фильтры ===
 st.sidebar.header("Filters")
-field_filter = st.sidebar.multiselect("Professional Field", sorted([x for x in df["professional field"].unique() if x]))
-role_filter = st.sidebar.multiselect("Role", sorted([x for x in df["role"].unique() if x]))
+field_filter = st.sidebar.multiselect("Professional Field", df_fields)
+role_filter = st.sidebar.multiselect("Role", df_roles)
 country_filter = st.sidebar.multiselect("Country", sorted([x for x in df["country"].unique() if x]))
 city_filter = st.sidebar.multiselect("City", sorted([x for x in df["city"].unique() if x]))
 
 filtered_df = df.copy()
 if field_filter:
-    filtered_df = filtered_df[filtered_df["professional field"].isin(field_filter)]
+    filtered_df = filtered_df[filtered_df["professional field"].apply(lambda x: any(f.strip() in field_filter for f in x.split(",")))]
 if role_filter:
-    filtered_df = filtered_df[filtered_df["role"].isin(role_filter)]
+    filtered_df = filtered_df[filtered_df["role"].apply(lambda x: any(r.strip() in role_filter for r in x.split(",")))]
 if country_filter:
     filtered_df = filtered_df[filtered_df["country"].isin(country_filter)]
 if city_filter:
