@@ -73,6 +73,9 @@ st.markdown(f"""
         background-color: transparent !important;
         margin-top: 0px;
     }}
+    .vis-network {{
+        background-color: {GRAPH_BG_COLOR} !important;
+    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -100,12 +103,6 @@ if country_filter:
 if city_filter:
     filtered_df = filtered_df[filtered_df["city"].isin(city_filter)]
 
-def get_google_drive_image_url(url):
-    if "drive.google.com" in url and "/d/" in url:
-        file_id = url.split("/d/")[1].split("/")[0]
-        return f"https://drive.google.com/thumbnail?id={file_id}"
-    return url
-
 def is_valid_image(url):
     try:
         r = requests.head(url, allow_redirects=True, timeout=3)
@@ -126,26 +123,24 @@ for _, row in filtered_df.iterrows():
     roles = [r.strip() for r in row["role"].split(",") if r.strip()]
     telegram = row["telegram nickname"].strip()
     email = row["email"].strip()
-    photo_drive = row.get("photo url", "").strip()
-    photo_direct = row.get("photo url", "").strip()
+    photo = row.get("photo url", "").strip()
 
-    photo = get_google_drive_image_url(photo_drive) if photo_drive else photo_direct
     if not is_valid_image(photo):
         photo = DEFAULT_PHOTO
 
     label = name
     tooltip = f"{name}\nTelegram: {telegram}\nEmail: {email}"
-    nodes.append(Node(id=name, label=label, size=25, color=NODE_NAME_COLOR, title=tooltip))
+    nodes.append(Node(id=name, label=label, size=10, color=NODE_NAME_COLOR, title=tooltip))
 
     if city:
         if city not in added:
-            nodes.append(Node(id=city, label=city, size=15, color=NODE_CITY_COLOR))
+            nodes.append(Node(id=city, label=city, size=5, color=NODE_CITY_COLOR))
             added.add(city)
         edges.append(Edge(source=name, target=city, color=EDGE_COLOR))
 
     if country:
         if country not in added:
-            nodes.append(Node(id=country, label=country, size=15, color=NODE_CITY_COLOR))
+            nodes.append(Node(id=country, label=country, size=5, color=NODE_CITY_COLOR))
             added.add(country)
         edges.append(Edge(source=name, target=country, color=EDGE_COLOR))
         if city:
@@ -153,13 +148,13 @@ for _, row in filtered_df.iterrows():
 
     for field in fields:
         if field not in added:
-            nodes.append(Node(id=field, label=field, size=15, color=NODE_FIELD_COLOR))
+            nodes.append(Node(id=field, label=field, size=5, color=NODE_FIELD_COLOR))
             added.add(field)
         edges.append(Edge(source=name, target=field, color=EDGE_COLOR))
 
     for role in roles:
         if role not in added:
-            nodes.append(Node(id=role, label=role, size=15, color=NODE_ROLE_COLOR))
+            nodes.append(Node(id=role, label=role, size=5, color=NODE_ROLE_COLOR))
             added.add(role)
         edges.append(Edge(source=name, target=role, color=EDGE_COLOR))
 
@@ -174,7 +169,8 @@ config = Config(
     highlightColor=HIGHLIGHT_EDGE_COLOR,
     collapsible=True,
     node={'labelProperty': 'label', 'font': {'color': GRAPH_LABEL_COLOR}},
-    edge={'color': EDGE_COLOR}
+    edge={'color': EDGE_COLOR},
+    backgroundColor=GRAPH_BG_COLOR
 )
 
 # === Отображение графа ===
@@ -189,9 +185,7 @@ with st.sidebar:
         selected_artist = df[df["name"].str.strip() == clicked_label]
         if not selected_artist.empty:
             artist = selected_artist.iloc[0]
-            photo_drive = artist.get("photo url", "").strip()
-            photo_direct = artist.get("photo url", "").strip()
-            photo = get_google_drive_image_url(photo_drive) if photo_drive else photo_direct
+            photo = artist.get("photo url", "").strip()
             if not is_valid_image(photo):
                 photo = DEFAULT_PHOTO
 
