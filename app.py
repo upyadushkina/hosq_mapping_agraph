@@ -26,7 +26,6 @@ EDGE_COLOR = "#4C4646"
 HIGHLIGHT_EDGE_COLOR = "#6A50FF"
 DEFAULT_PHOTO = "https://static.tildacdn.com/tild3532-6664-4163-b538-663866613835/hosq-design-NEW.png"
 
-# === Настройки страницы ===
 st.set_page_config(page_title="HOSQ Artists Mapping (Agraph)", layout="wide")
 
 # === CSS стилизация ===
@@ -66,6 +65,9 @@ st.markdown(f"""
     }}
     header {{
         background-color: {HEADER_MENU_COLOR} !important;
+    }}
+    .vis-network {{
+        background-color: {GRAPH_BG_COLOR} !important;
     }}
     </style>
 """, unsafe_allow_html=True)
@@ -110,3 +112,86 @@ if country_filter:
     filtered_df = filtered_df[filtered_df["country"].isin(country_filter)]
 if city_filter:
     filtered_df = filtered_df[filtered_df["city"].isin(city_filter)]
+
+# === Построение узлов и рёбер ===
+nodes = []
+edges = []
+added = set()
+
+for _, row in filtered_df.iterrows():
+    name = row["name"].strip()
+    city = row["city"].strip()
+    country = row["country"].strip()
+    fields = [f.strip() for f in row["professional field"].split(",") if f.strip()]
+    roles = [r.strip() for r in row["role"].split(",") if r.strip()]
+    telegram = row["telegram nickname"].strip()
+    email = row["email"].strip()
+    photo_url = get_google_drive_image_url(row.get("photo url", "").strip())
+
+    if not is_valid_image(photo_url):
+        photo_url = DEFAULT_PHOTO
+
+    nodes.append(Node(id=name, label=name, size=10, color=NODE_NAME_COLOR, title=f"{name}\nTelegram: {telegram}\nEmail: {email}"))
+
+    for label, color in [(city, NODE_CITY_COLOR), (country, NODE_CITY_COLOR)]:
+        if label and label not in added:
+            nodes.append(Node(id=label, label=label, size=5, color=color))
+            added.add(label)
+
+    if city:
+        edges.append(Edge(source=name, target=city, color=EDGE_COLOR))
+    if country:
+        edges.append(Edge(source=name, target=country, color=EDGE_COLOR))
+        if city:
+            edges.append(Edge(source=country, target=city, color=EDGE_COLOR))
+
+    for field in fields:
+        if field not in added:
+            nodes.append(Node(id=field, label=field, size=5, color=NODE_FIELD_COLOR))
+            added.add(field)
+        edges.append(Edge(source=name, target=field, color=EDGE_COLOR))
+
+    for role in roles:
+        if role not in added:
+            nodes.append(Node(id=role, label=role, size=5, color=NODE_ROLE_COLOR))
+            added.add(role)
+        edges.append(Edge(source=name, target=role, color=EDGE_COLOR))
+
+# === Конфигурация графа ===
+config = Config(
+    width=1100,
+    height=700,
+    directed=False,
+    physics=True,
+    hierarchical=False,
+    nodeHighlightBehavior=True,
+    highlightColor=HIGHLIGHT_EDGE_COLOR,
+    collapsible=True,
+    node={'labelProperty': 'label', 'font': {'color': GRAPH_LABEL_COLOR}},
+    edge={'color': EDGE_COLOR},
+    backgroundColor=GRAPH_BG_COLOR
+)
+
+# === Отображение графа ===
+st.subheader("HOSQ Artist Graph")
+return_value = agraph(nodes=nodes, edges=edges, config=config)
+
+# === Инфо о выбранном художнике в сайдбаре ===
+with st.sidebar:
+    clicked_label = return_value.strip() if isinstance(return_value, str) else None
+    if clicked_label:
+        selected_artist = df[df["name"].str.strip() == clicked_label]
+        if not selected_artist.empty:
+            artist = selected_artist.iloc[0]
+            photo_url = get_google_drive_image_url(artist.get("photo url", "").strip())
+            if not is_valid_image(photo_url):
+                photo_url = DEFAULT_PHOTO
+            st.markdown("---")
+            st.image(photo_url, width=200)
+            st.markdown(f"**Name:** {artist['name']}")
+            if artist["telegram nickname"]:
+                st.markdown(f"**Telegram:** {artist['telegram nickname']}")
+            if artist["email"]:
+                st.markdown(f"**Email:** {artist['email']}")
+    else:
+        st.info("Click a node to view artist info")
