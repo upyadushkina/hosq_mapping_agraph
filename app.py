@@ -76,6 +76,9 @@ st.markdown(f"""
     .vis-network {{
         background-color: {GRAPH_BG_COLOR} !important;
     }}
+    iframe[src*="agraph"] {
+        background-color: #262123 !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
