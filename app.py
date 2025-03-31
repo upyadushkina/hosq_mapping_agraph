@@ -126,7 +126,7 @@ for _, row in filtered_df.iterrows():
     roles = [r.strip() for r in row["role"].split(",") if r.strip()]
     telegram = row["telegram nickname"].strip()
     email = row["email"].strip()
-    photo_drive = row.get("photo google drive", "").strip()
+    photo_drive = row.get("photo url", "").strip()
     photo_direct = row.get("photo url", "").strip()
 
     photo = get_google_drive_image_url(photo_drive) if photo_drive else photo_direct
@@ -189,7 +189,7 @@ with st.sidebar:
         selected_artist = df[df["name"].str.strip() == clicked_label]
         if not selected_artist.empty:
             artist = selected_artist.iloc[0]
-            photo_drive = artist.get("photo google drive", "").strip()
+            photo_drive = artist.get("photo url", "").strip()
             photo_direct = artist.get("photo url", "").strip()
             photo = get_google_drive_image_url(photo_drive) if photo_drive else photo_direct
             if not is_valid_image(photo):
