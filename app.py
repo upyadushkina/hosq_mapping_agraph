@@ -135,6 +135,8 @@ config = Config(
 st.subheader("HOSQ Artist Graph")
 return_value = agraph(nodes=nodes, edges=edges, config=config)
 st.write("Selected node:", return_value)
+st.write("Returned type:", type(return_value))
+st.write("Returned value:", return_value)
 
 # === Инфо о выбранном художнике в popup сбоку ===
 clicked_label = return_value.label.strip() if return_value else None
