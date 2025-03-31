@@ -21,7 +21,6 @@ NODE_NAME_COLOR = "#4C4646"             # Цвет узлов-художнико
 NODE_CITY_COLOR = "#D3DAE8"             # Цвет узлов-городов
 NODE_FIELD_COLOR = "#EEC0E7"            # Цвет узлов-проф. полей
 NODE_ROLE_COLOR = "#F4C07C"             # Цвет узлов-ролей
-DEFAULT_PHOTO = "https://static.tildacdn.com/tild3532-6664-4163-b538-663866613835/hosq-design-NEW.png"
 
 # === Настройки страницы ===
 st.set_page_config(page_title="HOSQ Artists Mapping (Agraph)", layout="wide")
@@ -80,6 +79,8 @@ def get_google_drive_image_url(url):
         file_id = url.split("/d/")[1].split("/")[0]
         return f"https://drive.google.com/uc?id={file_id}"
     return url
+
+DEFAULT_PHOTO = get_google_drive_image_url("https://drive.google.com/file/d/1e2AT3q3EBR7naOhBkcGtVfi4_Aw3LfzU/view?usp=drive_link")
 
 def is_valid_image(url):
     try:
