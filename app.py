@@ -4,26 +4,26 @@ import requests
 from streamlit_agraph import agraph, Node, Edge, Config
 
 # === Цветовая схема и параметры ===
-PAGE_BG_COLOR = "#262123"               # Цвет фона страницы
-PAGE_TEXT_COLOR = "#E8DED3"             # Основной цвет текста
-SIDEBAR_BG_COLOR = "#262123"            # Цвет фона сайдбара
-SIDEBAR_LABEL_COLOR = "#E8DED3"         # Цвет текста лейблов фильтров
-SIDEBAR_TAG_TEXT_COLOR = "#E8DED3"      # Цвет текста выбранных тэгов
-SIDEBAR_TAG_BG_COLOR = "#6A50FF"        # Фон выбранных тэгов
-BUTTON_BG_COLOR = "#262123"             # Фон кнопок
-BUTTON_TEXT_COLOR = "#4C4646"           # Цвет текста кнопок
-BUTTON_CLEAN_TEXT_COLOR = "#E8DED3"     # Цвет текста кнопки очистки
-SIDEBAR_HEADER_COLOR = "#E8DED3"        # Цвет заголовка Filters
-SIDEBAR_TOGGLE_ARROW_COLOR = "#E8DED3"  # Цвет стрелки бокового меню
-HEADER_MENU_COLOR = "#262123"           # Цвет шапки
-GRAPH_BG_COLOR = "#262123"              # Фон графа
-GRAPH_LABEL_COLOR = "#E8DED3"           # Цвет подписей графа
-NODE_NAME_COLOR = "#4C4646"             # Цвет узлов-художников
-NODE_CITY_COLOR = "#D3DAE8"             # Цвет узлов-городов
-NODE_FIELD_COLOR = "#EEC0E7"            # Цвет узлов-проф. полей
-NODE_ROLE_COLOR = "#F4C07C"             # Цвет узлов-ролей
-EDGE_COLOR = "#4C4646"                  # Цвет рёбер по умолчанию
-HIGHLIGHT_EDGE_COLOR = "#6A50FF"        # Цвет рёбер при выделении
+PAGE_BG_COLOR = "#262123"
+PAGE_TEXT_COLOR = "#E8DED3"
+SIDEBAR_BG_COLOR = "#262123"
+SIDEBAR_LABEL_COLOR = "#E8DED3"
+SIDEBAR_TAG_TEXT_COLOR = "#E8DED3"
+SIDEBAR_TAG_BG_COLOR = "#6A50FF"
+BUTTON_BG_COLOR = "#262123"
+BUTTON_TEXT_COLOR = "#4C4646"
+BUTTON_CLEAN_TEXT_COLOR = "#E8DED3"
+SIDEBAR_HEADER_COLOR = "#E8DED3"
+SIDEBAR_TOGGLE_ARROW_COLOR = "#E8DED3"
+HEADER_MENU_COLOR = "#262123"
+GRAPH_BG_COLOR = "#262123"
+GRAPH_LABEL_COLOR = "#E8DED3"
+NODE_NAME_COLOR = "#4C4646"
+NODE_CITY_COLOR = "#D3DAE8"
+NODE_FIELD_COLOR = "#EEC0E7"
+NODE_ROLE_COLOR = "#F4C07C"
+EDGE_COLOR = "#4C4646"
+HIGHLIGHT_EDGE_COLOR = "#6A50FF"
 DEFAULT_PHOTO = "https://static.tildacdn.com/tild3532-6664-4163-b538-663866613835/hosq-design-NEW.png"
 
 # === Настройки страницы ===
@@ -67,18 +67,12 @@ st.markdown(f"""
     header {{
         background-color: {HEADER_MENU_COLOR} !important;
     }}
-    iframe {{
-        border: none !important;
-        box-shadow: none !important;
-        background-color: transparent !important;
-        margin-top: 0px;
-    }}
-    .vis-network {{
+    iframe[src*="agraph"] {{
         background-color: {GRAPH_BG_COLOR} !important;
     }}
-    iframe[src*="agraph"] {
-        background-color: #262123 !important;
-    }
+    .element-container iframe {{
+        background-color: {GRAPH_BG_COLOR} !important;
+    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -122,96 +116,3 @@ if country_filter:
     filtered_df = filtered_df[filtered_df["country"].isin(country_filter)]
 if city_filter:
     filtered_df = filtered_df[filtered_df["city"].isin(city_filter)]
-
-# === Построение узлов и рёбер ===
-nodes = []
-edges = []
-added = set()
-
-for _, row in filtered_df.iterrows():
-    name = row["name"].strip()
-    city = row["city"].strip()
-    country = row["country"].strip()
-    fields = [f.strip() for f in row["professional field"].split(",") if f.strip()]
-    roles = [r.strip() for r in row["role"].split(",") if r.strip()]
-    telegram = row["telegram nickname"].strip()
-    email = row["email"].strip()
-    raw_photo = row.get("photo url", "").strip()
-    photo = get_google_drive_image_url(raw_photo)
-    if not is_valid_image(photo):
-        photo = DEFAULT_PHOTO
-
-    label = name
-    tooltip = f"{name}\nTelegram: {telegram}\nEmail: {email}"
-    nodes.append(Node(id=name, label=label, size=10, color=NODE_NAME_COLOR, title=tooltip))
-
-    if city:
-        if city not in added:
-            nodes.append(Node(id=city, label=city, size=5, color=NODE_CITY_COLOR))
-            added.add(city)
-        edges.append(Edge(source=name, target=city, color=EDGE_COLOR))
-
-    if country:
-        if country not in added:
-            nodes.append(Node(id=country, label=country, size=5, color=NODE_CITY_COLOR))
-            added.add(country)
-        edges.append(Edge(source=name, target=country, color=EDGE_COLOR))
-        if city:
-            edges.append(Edge(source=country, target=city, color=EDGE_COLOR))
-
-    for field in fields:
-        if field not in added:
-            nodes.append(Node(id=field, label=field, size=5, color=NODE_FIELD_COLOR))
-            added.add(field)
-        edges.append(Edge(source=name, target=field, color=EDGE_COLOR))
-
-    for role in roles:
-        if role not in added:
-            nodes.append(Node(id=role, label=role, size=5, color=NODE_ROLE_COLOR))
-            added.add(role)
-        edges.append(Edge(source=name, target=role, color=EDGE_COLOR))
-
-# === Конфигурация графа ===
-config = Config(
-    width=1100,
-    height=700,
-    directed=False,
-    physics=True,
-    hierarchical=False,
-    nodeHighlightBehavior=True,
-    highlightColor=HIGHLIGHT_EDGE_COLOR,
-    collapsible=True,
-    node={'labelProperty': 'label', 'font': {'color': GRAPH_LABEL_COLOR}},
-    edge={'color': EDGE_COLOR},
-    backgroundColor=GRAPH_BG_COLOR
-)
-
-# === Отображение графа ===
-st.subheader("HOSQ Artist Graph")
-return_value = agraph(nodes=nodes, edges=edges, config=config)
-st.write("Selected node:", return_value)
-
-# === Инфо о выбранном художнике в сайдбаре ===
-with st.sidebar:
-    clicked_label = return_value.strip() if isinstance(return_value, str) else None
-    if clicked_label:
-        selected_artist = df[df["name"].str.strip() == clicked_label]
-        if not selected_artist.empty:
-            artist = selected_artist.iloc[0]
-            raw_photo = artist.get("photo url", "").strip()
-            photo = get_google_drive_image_url(raw_photo)
-            if not is_valid_image(photo):
-                photo = DEFAULT_PHOTO
-
-            st.markdown("---")
-            st.markdown(f"<div class='artist-card'><h4>🎨 {artist['name']}</h4>", unsafe_allow_html=True)
-            st.image(photo, width=200)
-            if artist['telegram nickname']:
-                st.markdown(f"**Telegram:** {artist['telegram nickname']}")
-            if artist['email']:
-                st.markdown(f"**Email:** {artist['email']}")
-            st.markdown("</div>", unsafe_allow_html=True)
-        else:
-            st.info("Selected node does not match any artist")
-    else:
-        st.info("Click a node to view artist info")
