@@ -86,7 +86,7 @@ for _, row in filtered_df.iterrows():
     photo = row["photo url"].strip() or DEFAULT_PHOTO
 
     label = name
-    tooltip = f"<div><strong>{name}</strong><br><img src='{photo}' width='100'><br>Telegram: {telegram}<br>Email: {email}</div>"
+    tooltip = f"{name}\nTelegram: {telegram}\nEmail: {email}"
     nodes.append(Node(id=name, label=label, size=400, color=NODE_NAME_COLOR, title=tooltip))
 
     if city:
@@ -131,17 +131,15 @@ config = Config(
 st.subheader("HOSQ Artist Graph")
 return_value = agraph(nodes=nodes, edges=edges, config=config)
 
-# === Инфо о выбранном художнике ===
+# === Инфо о выбранном художнике в popup сбоку ===
 if return_value and return_value.get("label") in df["name"].values:
     selected_artist = df[df["name"] == return_value.get("label")].iloc[0]
-    with st.sidebar:
-        st.markdown("---")
-        st.markdown(f"<div class='node-card'><h4>🎨 {selected_artist['name']}</h4>", unsafe_allow_html=True)
+    with st.expander("🎨 Artist Info", expanded=True):
         st.image(selected_artist['photo url'] or DEFAULT_PHOTO, width=200)
+        st.markdown(f"**Name:** {selected_artist['name']}")
         if selected_artist['telegram nickname']:
             st.markdown(f"**Telegram:** {selected_artist['telegram nickname']}")
         if selected_artist['email']:
             st.markdown(f"**Email:** {selected_artist['email']}")
-        st.markdown("</div>", unsafe_allow_html=True)
 else:
-    st.sidebar.info("Click a node to view artist info")
+    st.info("Click a node to view artist info")
