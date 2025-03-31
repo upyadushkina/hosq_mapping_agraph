@@ -137,9 +137,9 @@ return_value = agraph(nodes=nodes, edges=edges, config=config)
 st.write("Selected node:", return_value)
 
 # === Инфо о выбранном художнике в popup сбоку ===
-clicked_label = return_value.get("label") if return_value else None
+clicked_label = return_value.label.strip() if return_value else None
 if clicked_label:
-    selected_artist = df[df["name"].str.strip() == clicked_label.strip()]
+    selected_artist = df[df["name"].str.strip() == clicked_label]
     if not selected_artist.empty:
         artist = selected_artist.iloc[0]
         with st.expander("🎨 Artist Info", expanded=True):
