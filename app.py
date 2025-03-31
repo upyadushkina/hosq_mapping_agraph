@@ -77,7 +77,7 @@ if city_filter:
 def get_google_drive_image_url(url):
     if "drive.google.com" in url and "/d/" in url:
         file_id = url.split("/d/")[1].split("/")[0]
-        return f"https://drive.google.com/uc?id={file_id}"
+        return f"https://drive.google.com/thumbnail?id={file_id}"
     return url
 
 DEFAULT_PHOTO = get_google_drive_image_url("https://drive.google.com/file/d/1e2AT3q3EBR7naOhBkcGtVfi4_Aw3LfzU/view?usp=drive_link")
