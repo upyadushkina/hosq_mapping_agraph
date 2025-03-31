@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests
 from streamlit_agraph import agraph, Node, Edge, Config
 
 # === Цветовая схема и параметры ===
@@ -80,6 +81,13 @@ def get_google_drive_image_url(url):
         return f"https://drive.google.com/uc?id={file_id}"
     return url
 
+def is_valid_image(url):
+    try:
+        r = requests.head(url, allow_redirects=True, timeout=3)
+        return r.status_code == 200 and 'image' in r.headers.get('Content-Type', '')
+    except:
+        return False
+
 # === Построение узлов и рёбер ===
 nodes = []
 edges = []
@@ -97,7 +105,7 @@ for _, row in filtered_df.iterrows():
     photo_direct = row.get("photo url", "").strip()
 
     photo = get_google_drive_image_url(photo_drive) if photo_drive else photo_direct
-    if not photo or not photo.startswith("http"):
+    if not is_valid_image(photo):
         photo = DEFAULT_PHOTO
 
     label = name
@@ -156,7 +164,7 @@ if clicked_label:
         photo_drive = artist.get("photo google drive", "").strip()
         photo_direct = artist.get("photo url", "").strip()
         photo = get_google_drive_image_url(photo_drive) if photo_drive else photo_direct
-        if not photo or not photo.startswith("http"):
+        if not is_valid_image(photo):
             photo = DEFAULT_PHOTO
 
         with st.expander("🎨 Artist Info", expanded=True):
