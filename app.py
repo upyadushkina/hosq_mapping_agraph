@@ -86,6 +86,19 @@ df["role"] = df["role"].astype(str)
 df["country"] = df["country and city"].apply(lambda x: x.split(",")[0].strip() if "," in x else x.strip())
 df["city"] = df["country and city"].apply(lambda x: x.split(",")[1].strip() if "," in x else "")
 
+def get_google_drive_image_url(url):
+    if "drive.google.com" in url and "/d/" in url:
+        file_id = url.split("/d/")[1].split("/")[0]
+        return f"https://drive.google.com/thumbnail?id={file_id}"
+    return url
+
+def is_valid_image(url):
+    try:
+        r = requests.head(url, allow_redirects=True, timeout=3)
+        return r.status_code == 200 and 'image' in r.headers.get('Content-Type', '')
+    except:
+        return False
+
 # === Фильтры ===
 st.sidebar.header("Filters")
 field_filter = st.sidebar.multiselect("Professional Field", sorted([x for x in df["professional field"].unique() if x]))
@@ -103,13 +116,6 @@ if country_filter:
 if city_filter:
     filtered_df = filtered_df[filtered_df["city"].isin(city_filter)]
 
-def is_valid_image(url):
-    try:
-        r = requests.head(url, allow_redirects=True, timeout=3)
-        return r.status_code == 200 and 'image' in r.headers.get('Content-Type', '')
-    except:
-        return False
-
 # === Построение узлов и рёбер ===
 nodes = []
 edges = []
@@ -123,8 +129,8 @@ for _, row in filtered_df.iterrows():
     roles = [r.strip() for r in row["role"].split(",") if r.strip()]
     telegram = row["telegram nickname"].strip()
     email = row["email"].strip()
-    photo = row.get("photo url", "").strip()
-
+    raw_photo = row.get("photo url", "").strip()
+    photo = get_google_drive_image_url(raw_photo)
     if not is_valid_image(photo):
         photo = DEFAULT_PHOTO
 
@@ -185,7 +191,8 @@ with st.sidebar:
         selected_artist = df[df["name"].str.strip() == clicked_label]
         if not selected_artist.empty:
             artist = selected_artist.iloc[0]
-            photo = artist.get("photo url", "").strip()
+            raw_photo = artist.get("photo url", "").strip()
+            photo = get_google_drive_image_url(raw_photo)
             if not is_valid_image(photo):
                 photo = DEFAULT_PHOTO
 
